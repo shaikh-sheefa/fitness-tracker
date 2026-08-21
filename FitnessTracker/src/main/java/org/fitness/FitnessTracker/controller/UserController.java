@@ -1,6 +1,6 @@
 package org.fitness.FitnessTracker.controller;
 
-import org.fitness.FitnessTracker.entity.User;
+import org.fitness.FitnessTracker.dto.UserDTO;
 import org.fitness.FitnessTracker.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,32 +19,40 @@ public class UserController {
 
     // CREATE
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+
+        UserDTO createdUser = userService.createUser(userDTO);
+
+        return ResponseEntity.status(201).body(createdUser);
     }
 
     // READ ALL
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     // READ ONE
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
 
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        UserDTO userDTO = userService.getUserById(id);
+
+        if (userDTO == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(userDTO);
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long id,
-            @RequestBody User user) {
+            @RequestBody UserDTO userDTO) {
 
-        User updatedUser = userService.updateUser(id, user);
+        UserDTO updatedUser = userService.updateUser(id, userDTO);
 
         if (updatedUser == null) {
             return ResponseEntity.notFound().build();

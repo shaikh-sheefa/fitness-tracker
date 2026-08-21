@@ -1,11 +1,12 @@
 package org.fitness.FitnessTracker.service;
 
+import org.fitness.FitnessTracker.dto.UserDTO;
 import org.fitness.FitnessTracker.entity.User;
 import org.fitness.FitnessTracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -16,44 +17,74 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    // Create User
-    public User createUser(User user) {
-        return userRepository.save(user);
+    // CREATE
+    public UserDTO createUser(UserDTO userDTO) {
+
+        User user = new User();
+
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setAge(userDTO.getAge());
+        user.setHeight(userDTO.getHeight());
+        user.setWeight(userDTO.getWeight());
+
+        User savedUser = userRepository.save(user);
+
+        return convertToDTO(savedUser);
     }
 
-    // Get all Users
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    // READ ALL
+    public List<UserDTO> getAllUsers() {
+
+        return userRepository.findAll()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    // Get User by ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    // READ ONE
+    public UserDTO getUserById(Long id) {
+
+        return userRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElse(null);
     }
 
-    // Update User
-    public User updateUser(Long id, User updatedUser) {
+    // UPDATE
+    public UserDTO updateUser(Long id, UserDTO userDTO) {
 
-        Optional<User> existingUser = userRepository.findById(id);
+        return userRepository.findById(id)
+                .map(user -> {
 
-        if (existingUser.isPresent()) {
+                    user.setName(userDTO.getName());
+                    user.setEmail(userDTO.getEmail());
+                    user.setAge(userDTO.getAge());
+                    user.setHeight(userDTO.getHeight());
+                    user.setWeight(userDTO.getWeight());
 
-            User user = existingUser.get();
+                    User updatedUser = userRepository.save(user);
 
-            user.setName(updatedUser.getName());
-            user.setEmail(updatedUser.getEmail());
-            user.setAge(updatedUser.getAge());
-            user.setHeight(updatedUser.getHeight());
-            user.setWeight(updatedUser.getWeight());
-
-            return userRepository.save(user);
-        }
-
-        return null;
+                    return convertToDTO(updatedUser);
+                })
+                .orElse(null);
     }
 
-    // Delete User
+    // DELETE
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    // ENTITY → DTO
+    private UserDTO convertToDTO(User user) {
+
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setAge(user.getAge());
+        dto.setHeight(user.getHeight());
+        dto.setWeight(user.getWeight());
+
+        return dto;
     }
 }
