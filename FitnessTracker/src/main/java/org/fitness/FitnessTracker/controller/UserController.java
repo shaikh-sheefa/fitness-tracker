@@ -4,7 +4,7 @@ import org.fitness.FitnessTracker.dto.UserDTO;
 import org.fitness.FitnessTracker.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -19,7 +19,7 @@ public class UserController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
 
         UserDTO createdUser = userService.createUser(userDTO);
 
@@ -50,7 +50,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long id,
-            @RequestBody UserDTO userDTO) {
+          @Valid  @RequestBody UserDTO userDTO) {
 
         UserDTO updatedUser = userService.updateUser(id, userDTO);
 
