@@ -24,6 +24,8 @@ public class Diet {
 
     private Double fat;
 
+    private Double fibre;
+
     private LocalDate mealDate;
 
     @ManyToOne
@@ -85,6 +87,14 @@ public class Diet {
 
     public void setFat(Double fat) {
         this.fat = fat;
+    }
+
+    public Double getFibre() {
+        return fibre;
+    }
+
+    public void setFibre(Double fibre) {
+        this.fibre = fibre;
     }
 
     public LocalDate getMealDate() {

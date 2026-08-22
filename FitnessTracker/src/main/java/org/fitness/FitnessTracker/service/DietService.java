@@ -44,6 +44,7 @@ public class DietService {
         diet.setProtein(dietDTO.getProtein());
         diet.setCarbs(dietDTO.getCarbs());
         diet.setFat(dietDTO.getFat());
+        diet.setFibre(dietDTO.getFibre());
         diet.setMealDate(dietDTO.getMealDate());
 
         Diet savedDiet = dietRepository.save(diet);
@@ -101,6 +102,7 @@ public class DietService {
         diet.setProtein(dietDTO.getProtein());
         diet.setCarbs(dietDTO.getCarbs());
         diet.setFat(dietDTO.getFat());
+        diet.setFibre(dietDTO.getFibre());
         diet.setMealDate(dietDTO.getMealDate());
 
         Diet updatedDiet = dietRepository.save(diet);
@@ -126,6 +128,7 @@ public class DietService {
         dto.setProtein(diet.getProtein());
         dto.setCarbs(diet.getCarbs());
         dto.setFat(diet.getFat());
+        dto.setFibre(diet.getFibre());
         dto.setMealDate(diet.getMealDate());
 
         if (diet.getUser() != null) {

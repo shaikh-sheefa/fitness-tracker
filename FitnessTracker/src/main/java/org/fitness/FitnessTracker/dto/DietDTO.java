@@ -3,6 +3,7 @@ package org.fitness.FitnessTracker.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.LocalDate;
 
@@ -31,6 +32,10 @@ public class DietDTO {
     @NotNull(message = "Fat is required")
     @Positive(message = "Fat must be greater than 0")
     private Double fat;
+
+    @NotNull(message = "Fibre is required")
+    @PositiveOrZero(message = "Fibre cannot be negative")
+    private Double fibre;
 
     @NotNull(message = "Meal date is required")
     private LocalDate mealDate;
@@ -93,6 +98,14 @@ public class DietDTO {
 
     public void setFat(Double fat) {
         this.fat = fat;
+    }
+
+    public Double getFibre() {
+        return fibre;
+    }
+
+    public void setFibre(Double fibre) {
+        this.fibre = fibre;
     }
 
     public LocalDate getMealDate() {
