@@ -60,6 +60,15 @@ public class WorkoutService {
                 .collect(Collectors.toList());
     }
 
+    // GET WORKOUTS BY USER
+    public List<WorkoutDTO> getWorkoutsByUserId(Long userId) {
+
+        return workoutRepository.findByUserId(userId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     // READ ONE
     public WorkoutDTO getWorkoutById(Long id) {
 
