@@ -6,9 +6,11 @@ import org.fitness.FitnessTracker.entity.User;
 import org.fitness.FitnessTracker.repository.DietRepository;
 import org.fitness.FitnessTracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.fitness.FitnessTracker.dto.NutritionSummaryDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @Service
 public class DietService {
@@ -77,6 +79,44 @@ public class DietService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+    // DAILY NUTRITION SUMMARY
+    public NutritionSummaryDTO getDailyNutritionSummary(
+            Long userId,
+            LocalDate date) {
+
+        List<Diet> diets =
+                dietRepository.findByUserIdAndMealDate(userId, date);
+
+        NutritionSummaryDTO summary = new NutritionSummaryDTO();
+
+        summary.setDate(date);
+
+        double totalCalories = 0;
+        double totalProtein = 0;
+        double totalCarbs = 0;
+        double totalFat = 0;
+        double totalFibre = 0;
+
+        for (Diet diet : diets) {
+
+            totalCalories += diet.getCalories();
+            totalProtein += diet.getProtein();
+            totalCarbs += diet.getCarbs();
+            totalFat += diet.getFat();
+            if (diet.getFibre() != null) {
+                totalFibre += diet.getFibre();
+            }
+        }
+
+        summary.setTotalCalories(totalCalories);
+        summary.setTotalProtein(totalProtein);
+        summary.setTotalCarbs(totalCarbs);
+        summary.setTotalFat(totalFat);
+        summary.setTotalFibre(totalFibre);
+
+        return summary;
+    }
+
 
     // UPDATE
     public DietDTO updateDiet(Long id, DietDTO dietDTO) {

@@ -1,5 +1,7 @@
 package org.fitness.FitnessTracker.controller;
 
+import org.fitness.FitnessTracker.dto.NutritionSummaryDTO;
+import java.time.LocalDate;
 import jakarta.validation.Valid;
 import org.fitness.FitnessTracker.dto.DietDTO;
 import org.fitness.FitnessTracker.service.DietService;
@@ -63,6 +65,18 @@ public class DietController {
         return ResponseEntity.ok(
                 dietService.getDietsByUserId(userId)
         );
+    }
+
+    // DAILY NUTRITION SUMMARY
+    @GetMapping("/user/{userId}/summary")
+    public ResponseEntity<NutritionSummaryDTO> getDailyNutritionSummary(
+            @PathVariable Long userId,
+            @RequestParam LocalDate date) {
+
+        NutritionSummaryDTO summary =
+                dietService.getDailyNutritionSummary(userId, date);
+
+        return ResponseEntity.ok(summary);
     }
 
     // UPDATE
