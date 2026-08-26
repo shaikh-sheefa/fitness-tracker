@@ -4,6 +4,7 @@ import org.fitness.FitnessTracker.dto.NutritionSummaryDTO;
 import java.time.LocalDate;
 import jakarta.validation.Valid;
 import org.fitness.FitnessTracker.dto.DietDTO;
+import org.fitness.FitnessTracker.dto.WorkoutDTO;
 import org.fitness.FitnessTracker.service.DietService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

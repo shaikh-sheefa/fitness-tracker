@@ -78,4 +78,10 @@ public class WorkoutController {
 
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<WorkoutDTO>> getWorkoutsByUser(
+            @PathVariable Long userId) {
+
+        return ResponseEntity.ok(workoutService.getWorkoutsByUserId(userId));
+    }
 }
