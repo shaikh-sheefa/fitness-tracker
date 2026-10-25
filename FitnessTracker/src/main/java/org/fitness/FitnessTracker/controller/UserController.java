@@ -43,18 +43,13 @@ public class UserController {
     }
 
     // READ ONE
+
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(
-            @PathVariable Long id) {
-
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         UserDTO userDTO = userService.getUserById(id);
-
-        if (userDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(userDTO);
     }
+
 
     // GET WORKOUTS FOR USER
     @GetMapping("/{userId}/workouts")
@@ -67,6 +62,7 @@ public class UserController {
     }
 
     // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long id,
@@ -74,12 +70,9 @@ public class UserController {
 
         UserDTO updatedUser = userService.updateUser(id, userDTO);
 
-        if (updatedUser == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(updatedUser);
     }
+
 
     // DELETE
     @DeleteMapping("/{id}")

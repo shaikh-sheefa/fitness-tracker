@@ -6,6 +6,8 @@ import org.fitness.FitnessTracker.entity.Workout;
 import org.fitness.FitnessTracker.repository.UserRepository;
 import org.fitness.FitnessTracker.repository.WorkoutRepository;
 import org.springframework.stereotype.Service;
+import org.fitness.FitnessTracker.service.NotificationClient;
+import org.fitness.FitnessTracker.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,13 +17,16 @@ public class WorkoutService {
 
     private final WorkoutRepository workoutRepository;
     private final UserRepository userRepository;
+    private final NotificationClient notificationClient;
 
     public WorkoutService(
             WorkoutRepository workoutRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationClient notificationClient) {
 
         this.workoutRepository = workoutRepository;
         this.userRepository = userRepository;
+        this.notificationClient = notificationClient;
     }
 
     // CREATE
@@ -48,6 +53,20 @@ public class WorkoutService {
 
         workoutDTO.setId(savedWorkout.getId());
 
+// Send notification after saving the workout
+        try {
+            notificationClient.sendNotification(
+                    "sheefa@example.com",
+                    "Workout added successfully: "
+                            + savedWorkout.getWorkoutType()
+                            + " for "
+                            + savedWorkout.getDuration()
+                            + " minutes."
+            );
+        } catch (Exception e) {
+            System.out.println("Notification failed: " + e.getMessage());
+        }
+
         return workoutDTO;
     }
 
@@ -70,29 +89,29 @@ public class WorkoutService {
     }
 
     // READ ONE
+
     public WorkoutDTO getWorkoutById(Long id) {
 
         return workoutRepository.findById(id)
                 .map(this::convertToDTO)
-                .orElse(null);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Workout " + id + " not found"));
     }
 
+
     // UPDATE
+
     public WorkoutDTO updateWorkout(Long id, WorkoutDTO workoutDTO) {
 
-        Workout workout = workoutRepository.findById(id).orElse(null);
-
-        if (workout == null) {
-            return null;
-        }
+        Workout workout = workoutRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Workout " + id + " not found"));
 
         User user = userRepository
                 .findById(workoutDTO.getUserId())
-                .orElse(null);
-
-        if (user == null) {
-            return null;
-        }
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User " + workoutDTO.getUserId() + " not found"));
 
         workout.setUser(user);
         workout.setWorkoutType(workoutDTO.getWorkoutType());
@@ -105,10 +124,16 @@ public class WorkoutService {
         return convertToDTO(updatedWorkout);
     }
 
+
     // DELETE
+
     public void deleteWorkout(Long id) {
 
-        workoutRepository.deleteById(id);
+        Workout workout = workoutRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Workout " + id + " not found"));
+
+        workoutRepository.delete(workout);
     }
 
     // ENTITY → DTO

@@ -45,18 +45,16 @@ public class DietController {
     }
 
     // READ ONE
+
     @GetMapping("/{id}")
     public ResponseEntity<DietDTO> getDietById(
             @PathVariable Long id) {
 
         DietDTO dietDTO = dietService.getDietById(id);
 
-        if (dietDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(dietDTO);
     }
+
 
     // GET DIETS BY USER
     @GetMapping("/user/{userId}")
@@ -81,6 +79,7 @@ public class DietController {
     }
 
     // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<DietDTO> updateDiet(
             @PathVariable Long id,
@@ -89,12 +88,9 @@ public class DietController {
         DietDTO updatedDiet =
                 dietService.updateDiet(id, dietDTO);
 
-        if (updatedDiet == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(updatedDiet);
     }
+
 
     // DELETE
     @DeleteMapping("/{id}")

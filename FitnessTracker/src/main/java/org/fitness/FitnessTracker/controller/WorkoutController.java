@@ -40,20 +40,19 @@ public class WorkoutController {
     }
 
     // READ ONE
+
     @GetMapping("/{id}")
     public ResponseEntity<WorkoutDTO> getWorkoutById(
             @PathVariable Long id) {
 
         WorkoutDTO workoutDTO = workoutService.getWorkoutById(id);
 
-        if (workoutDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(workoutDTO);
     }
 
+
     // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<WorkoutDTO> updateWorkout(
             @PathVariable Long id,
@@ -62,12 +61,9 @@ public class WorkoutController {
         WorkoutDTO updatedWorkout =
                 workoutService.updateWorkout(id, workoutDTO);
 
-        if (updatedWorkout == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(updatedWorkout);
     }
+
 
     // DELETE
     @DeleteMapping("/{id}")
@@ -78,6 +74,7 @@ public class WorkoutController {
 
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<WorkoutDTO>> getWorkoutsByUser(
             @PathVariable Long userId) {

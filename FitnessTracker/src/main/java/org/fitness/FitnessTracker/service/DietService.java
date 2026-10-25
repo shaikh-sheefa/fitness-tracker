@@ -7,6 +7,7 @@ import org.fitness.FitnessTracker.repository.DietRepository;
 import org.fitness.FitnessTracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.fitness.FitnessTracker.dto.NutritionSummaryDTO;
+import org.fitness.FitnessTracker.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,12 +65,15 @@ public class DietService {
     }
 
     // READ ONE
+
     public DietDTO getDietById(Long id) {
 
         return dietRepository.findById(id)
                 .map(this::convertToDTO)
-                .orElse(null);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Diet " + id + " not found"));
     }
+
 
     // GET DIETS BY USER
     public List<DietDTO> getDietsByUserId(Long userId) {
@@ -119,21 +123,18 @@ public class DietService {
 
 
     // UPDATE
+
     public DietDTO updateDiet(Long id, DietDTO dietDTO) {
 
-        Diet diet = dietRepository.findById(id).orElse(null);
-
-        if (diet == null) {
-            return null;
-        }
+        Diet diet = dietRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Diet " + id + " not found"));
 
         User user = userRepository
                 .findById(dietDTO.getUserId())
-                .orElse(null);
-
-        if (user == null) {
-            return null;
-        }
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User " + dietDTO.getUserId() + " not found"));
 
         diet.setUser(user);
         diet.setMealType(dietDTO.getMealType());
@@ -150,11 +151,17 @@ public class DietService {
         return convertToDTO(updatedDiet);
     }
 
+
     // DELETE
     public void deleteDiet(Long id) {
 
-        dietRepository.deleteById(id);
+        Diet diet = dietRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Diet " + id + " not found"));
+
+        dietRepository.delete(diet);
     }
+
 
     // ENTITY → DTO
     private DietDTO convertToDTO(Diet diet) {

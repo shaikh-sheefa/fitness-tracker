@@ -4,6 +4,7 @@ import org.fitness.FitnessTracker.dto.UserDTO;
 import org.fitness.FitnessTracker.entity.User;
 import org.fitness.FitnessTracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.fitness.FitnessTracker.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,14 +44,17 @@ public class UserService {
     }
 
     // READ ONE
-    public UserDTO getUserById(Long id) {
 
+    public UserDTO getUserById(Long id) {
         return userRepository.findById(id)
                 .map(this::convertToDTO)
-                .orElse(null);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User " + id + " not found"));
     }
 
+
     // UPDATE
+
     public UserDTO updateUser(Long id, UserDTO userDTO) {
 
         return userRepository.findById(id)
@@ -66,13 +70,22 @@ public class UserService {
 
                     return convertToDTO(updatedUser);
                 })
-                .orElse(null);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User " + id + " not found"));
     }
 
+
     // DELETE
+
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User " + id + " not found"));
+
+        userRepository.delete(user);
     }
+
 
     // ENTITY → DTO
     private UserDTO convertToDTO(User user) {
