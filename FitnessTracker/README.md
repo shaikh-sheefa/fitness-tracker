@@ -1,6 +1,8 @@
 # FitnessTracker Service
 
-The main backend of the Fitness Tracker project. It manages users, workouts and meals, calculates daily nutrition and fitness summaries, and calls the [notification service](../notification-service/README.md) whenever a workout is added.
+The main backend of the Fitness Tracker project. It manages workouts and meals, calculates daily nutrition and fitness summaries, and calls the [notification service](../notification-service/README.md) whenever a workout is added.
+
+Users are owned by [user-service](../user-service/README.md). This service stores only a user's id on each workout and meal, and asks user-service whether the user exists before saving one.
 
 ## Tech stack
 
@@ -11,16 +13,16 @@ Java 21, Spring Boot 4.1 (Web MVC, Data JPA, Validation), MySQL, Lombok.
 ```
 FitnessTracker/src/main/java/org/fitness/FitnessTracker/
 ├── controller/
-│   ├── UserController.java              /api/users
 │   ├── WorkoutController.java           /api/workouts
 │   ├── DietController.java              /api/diets
 │   ├── FitnessSummaryController.java    /api/fitness
 │   └── NotificationTestController.java  /api/test-notification
+├── client/UserClient.java   asks user-service whether a user exists
 ├── service/                 business logic, plus NotificationClient
 ├── repository/              Spring Data JPA repositories
-├── entity/                  User, Workout, Diet
+├── entity/                  Workout, Diet
 ├── dto/                     request/response objects with validation rules
-├── exception/               GlobalExceptionHandler, ResourceNotFoundException
+├── exception/               GlobalExceptionHandler, ResourceNotFoundException, ServiceUnavailableException
 ├── config/RestClientConfig.java   RestClient used to call other services
 └── CorsConfig.java          allows the frontend at http://localhost:5173
 ```
@@ -31,9 +33,10 @@ Uses the MySQL database `fitness_tracker` on `localhost:3306`. Hibernate creates
 
 | Table | Holds | Links |
 |---|---|---|
-| `users` | name, email, age, height, weight | shared with `user-service` |
-| `workouts` | type, duration, calories burned, date | `user_id` → `users` |
-| `diet` | meal type, food, calories, protein, carbs, fat, fibre, date | `user_id` → `users` |
+| `workouts` | type, duration, calories burned, date | `user_id`: id of a user in user-service |
+| `diet` | meal type, food, calories, protein, carbs, fat, fibre, date | `user_id`: id of a user in user-service |
+
+`user_id` is a plain column, not a foreign key, because the users live in another service.
 
 ## Run it
 
@@ -61,34 +64,35 @@ Uses the MySQL database `fitness_tracker` on `localhost:3306`. Hibernate creates
    ./mvnw spring-boot:run        # Windows: .\mvnw.cmd spring-boot:run
    ```
 
-The API runs on **http://localhost:8081**. Start the notification service on port 8082 as well if you want workout notifications; workouts still save without it.
+The API runs on **http://localhost:8081**.
+
+Also start:
+
+- **[user-service](../user-service/README.md) on port 8083.** It is required for adding or updating workouts and meals. Its address is set by `services.user-service.url` in `application.properties`.
+- **[notification-service](../notification-service/README.md) on port 8082,** if you want workout notifications. Workouts still save without it.
+
+### Upgrading an existing database
+
+Older versions of this service created foreign keys from `workouts` and `diet` to `users`. Those keys stop user-service from deleting users, so drop them once:
+
+```sql
+SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'fitness_tracker' AND REFERENCED_TABLE_NAME = 'users';
+
+-- then, for each row returned:
+ALTER TABLE workouts DROP FOREIGN KEY <constraint name>;
+ALTER TABLE diet DROP FOREIGN KEY <constraint name>;
+```
 
 ## API
 
 Dates use the `YYYY-MM-DD` format, for example `2026-11-06`.
 
-### Users — `/api/users`
-
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/users` | Create a user → `201` |
-| `GET` | `/api/users` | List all users |
-| `GET` | `/api/users/{id}` | Get one user |
-| `GET` | `/api/users/{userId}/workouts` | List a user's workouts |
-| `PUT` | `/api/users/{id}` | Update a user |
-| `DELETE` | `/api/users/{id}` | Delete a user → `204` |
-
-```json
-{ "name": "Priya Nair", "email": "priya@example.com", "age": 29, "height": 163, "weight": 55 }
-```
-
-Rules: `name` and `email` required, `email` must be valid, `age` 13–100, `height` at least 50 (cm), `weight` at least 20 (kg).
-
 ### Workouts — `/api/workouts`
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/workouts` | Add a workout → `201`, or `404` if the user doesn't exist. Also sends a notification. |
+| `POST` | `/api/workouts` | Add a workout → `201`. Checks the user in user-service first. Also sends a notification. |
 | `GET` | `/api/workouts` | List all workouts |
 | `GET` | `/api/workouts/{id}` | Get one workout |
 | `GET` | `/api/workouts/user/{userId}` | List a user's workouts |
@@ -105,7 +109,7 @@ Rules: `workoutType` required, `duration` at least 1 (minutes), `caloriesBurned`
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/diets` | Log a meal → `201`, or `404` if the user doesn't exist |
+| `POST` | `/api/diets` | Log a meal → `201`. Checks the user in user-service first. |
 | `GET` | `/api/diets` | List all meals |
 | `GET` | `/api/diets/{id}` | Get one meal |
 | `GET` | `/api/diets/user/{userId}` | List a user's meals |
@@ -138,6 +142,10 @@ Rules: `mealType` and `foodName` required; `calories`, `protein`, `carbs` and `f
 }
 ```
 
+### Delete a user's data — `/api/fitness`
+
+`DELETE /api/fitness/users/{userId}` deletes every workout and meal of that user and returns `204`. user-service calls it just before deleting a user.
+
 ### Notification test — `/api/test-notification`
 
 `POST /api/test-notification` sends a test message through the notification service and returns its response.
@@ -147,8 +155,8 @@ Rules: `mealType` and `foodName` required; `calories`, `protein`, `carbs` and `f
 | Status | When | Body |
 |---|---|---|
 | `400` | A field fails validation | `{ "field": "message", ... }` |
-| `404` | A user, workout or meal id doesn't exist | `{ "error": "Workout 7 not found" }` |
-| `404` | Creating a workout or meal for an unknown user | empty body |
+| `404` | A workout or meal id doesn't exist, or the user doesn't exist in user-service | `{ "error": "User 7 not found" }` |
+| `503` | Adding or updating a workout or meal while user-service is down | `{ "error": "User service is unavailable, so user 7 could not be checked" }` |
 
 ## Notes
 

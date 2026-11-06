@@ -33,4 +33,11 @@ public class FitnessSummaryController {
 
         return ResponseEntity.ok(summary);
     }
+
+    // DELETE ALL WORKOUTS AND MEALS OF A USER (used by user-service)
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUserData(@PathVariable Long userId) {
+        fitnessSummaryService.deleteUserData(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

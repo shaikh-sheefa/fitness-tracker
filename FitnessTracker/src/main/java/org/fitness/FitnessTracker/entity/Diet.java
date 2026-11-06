@@ -28,9 +28,9 @@ public class Diet {
 
     private LocalDate mealDate;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    // Id of the user in user-service. Users live in that service, so this is a plain column, not a foreign key.
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
 
     public Long getId() {
@@ -105,11 +105,11 @@ public class Diet {
         this.mealDate = mealDate;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

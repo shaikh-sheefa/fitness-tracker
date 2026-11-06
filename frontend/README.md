@@ -65,4 +65,4 @@ The backend URL is written directly in `src/App.jsx`. To point the app at anothe
 
 ## Notes
 
-- Workouts and meals are linked to a user by id, so the user must already exist. Create users through `POST /api/users` on port 8081, or with the Startline app in [`user-service/`](../user-service/README.md), which uses the same database.
+- Workouts and meals are linked to a user by id, so the user must already exist. Users are managed by [`user-service`](../user-service/README.md): create them with its Startline app or `POST http://localhost:8083/api/users`. user-service must be running when you add or edit workouts and meals.

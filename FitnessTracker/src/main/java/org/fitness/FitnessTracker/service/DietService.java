@@ -2,9 +2,8 @@ package org.fitness.FitnessTracker.service;
 
 import org.fitness.FitnessTracker.dto.DietDTO;
 import org.fitness.FitnessTracker.entity.Diet;
-import org.fitness.FitnessTracker.entity.User;
 import org.fitness.FitnessTracker.repository.DietRepository;
-import org.fitness.FitnessTracker.repository.UserRepository;
+import org.fitness.FitnessTracker.client.UserClient;
 import org.springframework.stereotype.Service;
 import org.fitness.FitnessTracker.dto.NutritionSummaryDTO;
 import org.fitness.FitnessTracker.exception.ResourceNotFoundException;
@@ -17,14 +16,14 @@ import java.time.LocalDate;
 public class DietService {
 
     private final DietRepository dietRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
 
     public DietService(
             DietRepository dietRepository,
-            UserRepository userRepository) {
+            UserClient userClient) {
 
         this.dietRepository = dietRepository;
-        this.userRepository = userRepository;
+        this.userClient = userClient;
     }
 
     // CREATE
@@ -32,15 +31,8 @@ public class DietService {
 
         Diet diet = new Diet();
 
-        User user = userRepository
-                .findById(dietDTO.getUserId())
-                .orElse(null);
-
-        if (user == null) {
-            return null;
-        }
-
-        diet.setUser(user);
+        userClient.ensureUserExists(dietDTO.getUserId());
+        diet.setUserId(dietDTO.getUserId());
         diet.setMealType(dietDTO.getMealType());
         diet.setFoodName(dietDTO.getFoodName());
         diet.setCalories(dietDTO.getCalories());
@@ -130,13 +122,8 @@ public class DietService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Diet " + id + " not found"));
 
-        User user = userRepository
-                .findById(dietDTO.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User " + dietDTO.getUserId() + " not found"));
-
-        diet.setUser(user);
+        userClient.ensureUserExists(dietDTO.getUserId());
+        diet.setUserId(dietDTO.getUserId());
         diet.setMealType(dietDTO.getMealType());
         diet.setFoodName(dietDTO.getFoodName());
         diet.setCalories(dietDTO.getCalories());
@@ -178,9 +165,7 @@ public class DietService {
         dto.setFibre(diet.getFibre());
         dto.setMealDate(diet.getMealDate());
 
-        if (diet.getUser() != null) {
-            dto.setUserId(diet.getUser().getId());
-        }
+        dto.setUserId(diet.getUserId());
 
         return dto;
     }

@@ -6,25 +6,27 @@ A fitness tracking app built as a set of Spring Boot microservices with React fr
 
 | Folder | What it is | Port |
 |---|---|---|
-| [`FitnessTracker/`](FitnessTracker/README.md) | Main service: users, workouts, diet, and daily summaries | 8081 |
+| [`FitnessTracker/`](FitnessTracker/README.md) | Main service: workouts, diet, and daily summaries | 8081 |
 | [`notification-service/`](notification-service/README.md) | Receives notification requests from the main service | 8082 |
-| [`user-service/`](user-service/README.md) | Stand-alone user management service | 8083 |
+| [`user-service/`](user-service/README.md) | Owns all user data; every other service asks it about users | 8083 |
 | [`frontend/`](frontend/README.md) | React app for workouts, diet and nutrition summaries (talks to 8081) | 5173 |
 | [`user-service/frontend/`](user-service/README.md#run-the-frontend) | Startline: React app for managing athletes (talks to 8083) | 5173 |
 
 ## Architecture
 
 ```
-  frontend (5173) ──────────► FitnessTracker (8081) ──────► notification-service (8082)
-                                     │                      called after each new workout
-                                     ▼
-                              MySQL: fitness_tracker
-                                     ▲
-                                     │
-  user-service/frontend ────► user-service (8083)
+  frontend (5173) ──────► FitnessTracker (8081) ──────► notification-service (8082)
+                               │       ▲               called after each new workout
+          checks that the user │       │ deletes the user's workouts and meals
+             exists before     │       │ before the user is removed
+             saving workouts   ▼       │
+             and meals       user-service (8083) ◄────── Startline (user-service/frontend)
 ```
 
-- `FitnessTracker` and `user-service` use the same MySQL database, `fitness_tracker`, and the same `users` table. A user created in one shows up in the other.
+- **user-service owns users.** It is the only service that creates, changes or deletes users.
+- **FitnessTracker stores only the user's id** on each workout and meal. Before saving one, it asks user-service whether that user exists.
+- **Deleting a user** in user-service first asks FitnessTracker to delete that user's workouts and meals, so no data is left pointing at a missing user.
+- Both services currently share the MySQL database `fitness_tracker` (user-service uses the `users` table, FitnessTracker uses `workouts` and `diet`), but neither reads the other's tables.
 - `notification-service` has no database.
 
 ## Tech stack
@@ -55,11 +57,13 @@ Start each service from its own folder, in a separate terminal (on Windows use `
 
 ```bash
 cd notification-service && ./mvnw spring-boot:run
-cd FitnessTracker       && ./mvnw spring-boot:run
 cd user-service         && ./mvnw spring-boot:run
+cd FitnessTracker       && ./mvnw spring-boot:run
 ```
 
 `FitnessTracker` and `user-service` need your MySQL password; see each module's README for how to set it.
+
+Run `user-service` and `FitnessTracker` together: adding workouts and meals needs user-service, and deleting users needs FitnessTracker. If one of them is down, the other answers `503 Service Unavailable` for those actions instead of saving bad data.
 
 ### 3. Start a frontend
 

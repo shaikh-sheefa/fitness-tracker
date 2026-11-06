@@ -10,6 +10,8 @@ public interface DietRepository extends JpaRepository<Diet, Long> {
 
     List<Diet> findByUserId(Long userId);
 
+    void deleteByUserId(Long userId);
+
     List<Diet> findByUserIdAndMealDate(
             Long userId,
             LocalDate mealDate
