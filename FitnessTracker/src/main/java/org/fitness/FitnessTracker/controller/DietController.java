@@ -28,10 +28,6 @@ public class DietController {
 
         DietDTO createdDiet = dietService.createDiet(dietDTO);
 
-        if (createdDiet == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.status(201).body(createdDiet);
     }
 

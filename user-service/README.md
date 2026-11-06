@@ -68,6 +68,10 @@ user-service/
 
 The API is now on **http://localhost:8083**.
 
+This service owns all users in the project. FitnessTracker asks it whether a user exists before saving workouts and meals.
+
+Deleting a user also needs the [FitnessTracker service](../FitnessTracker/README.md) running on port 8081: before deleting the user, this service asks FitnessTracker to delete that user's workouts and meals. If FitnessTracker is down, the delete is refused with `503` and the user is kept. The address is set by `services.fitness-tracker.url` in `application.properties`.
+
 ## Run the frontend
 
 In a second terminal, while the backend is running:
@@ -100,7 +104,7 @@ Base URL: `http://localhost:8083/api/users`
 | `GET` | `/api/users/{id}` | Get one user | `200` with the user, `404` if not found |
 | `POST` | `/api/users` | Create a user | `200` with the saved user |
 | `PUT` | `/api/users/{id}` | Replace a user's details | `200` with the updated user, `404` if not found |
-| `DELETE` | `/api/users/{id}` | Delete a user | `200` with an empty body, `404` if not found |
+| `DELETE` | `/api/users/{id}` | Delete a user and, through FitnessTracker, all of their workouts and meals | `200` with an empty body, `404` if not found, `503` if FitnessTracker is down |
 
 ### Request body (POST and PUT)
 

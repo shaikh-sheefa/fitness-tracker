@@ -25,10 +25,6 @@ public class WorkoutController {
 
         WorkoutDTO createdWorkout = workoutService.createWorkout(workoutDTO);
 
-        if (createdWorkout == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.status(201).body(createdWorkout);
     }
 

@@ -1,9 +1,8 @@
 package org.fitness.FitnessTracker.service;
 
 import org.fitness.FitnessTracker.dto.WorkoutDTO;
-import org.fitness.FitnessTracker.entity.User;
 import org.fitness.FitnessTracker.entity.Workout;
-import org.fitness.FitnessTracker.repository.UserRepository;
+import org.fitness.FitnessTracker.client.UserClient;
 import org.fitness.FitnessTracker.repository.WorkoutRepository;
 import org.springframework.stereotype.Service;
 import org.fitness.FitnessTracker.service.NotificationClient;
@@ -16,16 +15,16 @@ import java.util.stream.Collectors;
 public class WorkoutService {
 
     private final WorkoutRepository workoutRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final NotificationClient notificationClient;
 
     public WorkoutService(
             WorkoutRepository workoutRepository,
-            UserRepository userRepository,
+            UserClient userClient,
             NotificationClient notificationClient) {
 
         this.workoutRepository = workoutRepository;
-        this.userRepository = userRepository;
+        this.userClient = userClient;
         this.notificationClient = notificationClient;
     }
 
@@ -34,15 +33,8 @@ public class WorkoutService {
 
         Workout workout = new Workout();
 
-        User user = userRepository
-                .findById(workoutDTO.getUserId())
-                .orElse(null);
-
-        if (user == null) {
-            return null;
-        }
-
-        workout.setUser(user);
+        userClient.ensureUserExists(workoutDTO.getUserId());
+        workout.setUserId(workoutDTO.getUserId());
 
         workout.setWorkoutType(workoutDTO.getWorkoutType());
         workout.setDuration(workoutDTO.getDuration());
@@ -107,13 +99,8 @@ public class WorkoutService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Workout " + id + " not found"));
 
-        User user = userRepository
-                .findById(workoutDTO.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User " + workoutDTO.getUserId() + " not found"));
-
-        workout.setUser(user);
+        userClient.ensureUserExists(workoutDTO.getUserId());
+        workout.setUserId(workoutDTO.getUserId());
         workout.setWorkoutType(workoutDTO.getWorkoutType());
         workout.setDuration(workoutDTO.getDuration());
         workout.setCaloriesBurned(workoutDTO.getCaloriesBurned());
@@ -146,9 +133,7 @@ public class WorkoutService {
         dto.setDuration(workout.getDuration());
         dto.setCaloriesBurned(workout.getCaloriesBurned());
         dto.setWorkoutDate(workout.getWorkoutDate());
-        if (workout.getUser() != null) {
-            dto.setUserId(workout.getUser().getId());
-        }
+        dto.setUserId(workout.getUserId());
         return dto;
     }
 }

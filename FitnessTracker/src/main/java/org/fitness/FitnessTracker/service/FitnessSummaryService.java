@@ -6,6 +6,7 @@ import org.fitness.FitnessTracker.entity.Workout;
 import org.fitness.FitnessTracker.repository.DietRepository;
 import org.fitness.FitnessTracker.repository.WorkoutRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -92,5 +93,12 @@ public class FitnessSummaryService {
         summary.setWorkoutDuration(workoutDuration);
 
         return summary;
+    }
+
+    // Called by user-service before it deletes a user
+    @Transactional
+    public void deleteUserData(Long userId) {
+        workoutRepository.deleteByUserId(userId);
+        dietRepository.deleteByUserId(userId);
     }
 }
